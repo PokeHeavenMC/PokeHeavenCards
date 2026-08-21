@@ -31,8 +31,27 @@ All major changes brought to **Cobblemon Cards** in this update.
 * Fixed `ItemStack` instances being shared between a cabinet's container and the `BINDER_CONTENTS` component when broken or placed.
 
 
+### ⚖️ Stat Caps — bonuses no longer stack without bound
+Binder stats were summed linearly over every slotted card with no ceiling. A Master Album holds
+1000 pages × 12 slots = **12,000 cards**, so a filled one pushed flat stats like Armor and Max Health
+into the hundreds. Spawn boosts were already capped by `maxSpawnBoostMultiplier`; player stats now are too.
+* **New**: `enableStatCaps` (default `true`) plus a per-stat ceiling for every player stat —
+  `miningSpeedStatCap` (15), `movementSpeedStatCap` (50), `attackDamageStatCap` (50),
+  `attackSpeedStatCap` (50), `luckStatCap` (10), `armorStatCap` (10), `maxHealthStatCap` (20),
+  `cardDropChanceStatCap` (50). Set `enableStatCaps` to `false` to restore the old uncapped behaviour.
+* The cap is applied in `CardStatUtil.getEffectiveValue`, the same single choke point as the config
+  multipliers — so tooltips, the binder stat panel, attribute modifiers and the drop bonus can never
+  disagree about a value.
+* Spawn stats are deliberately left out of the per-stat caps: they have their own ceiling,
+  `maxSpawnBoostMultiplier`, which is now **lowered from `100.0` to `5.0`**. At ×100 it was so
+  permissive it never actually bound anything; ×5 means a boosted type is at most five times more
+  likely to spawn. It also gained the translation keys it was missing, so it finally shows up with a
+  proper name and tooltip in the config menu instead of a raw field name.
+
 ### Master Album Config for Disabling Stats
 * **New Config Option**: `doesMasterBinderProvideStats` — Set to `false` to disable stats from master tier binders. Due to their large card capacity.
+  Now **defaults to `false`**, making the Master Album a pure storage item. Its 12,000-card capacity is
+  untouched and lower binder tiers are unaffected.
 
 ---
 

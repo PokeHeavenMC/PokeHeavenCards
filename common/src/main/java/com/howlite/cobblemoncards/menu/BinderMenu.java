@@ -193,6 +193,16 @@ public class BinderMenu extends AbstractContainerMenu {
     public int getCurrentPage() { return currentPage; }
     public int getMaxPages() { return tier.getPages(); }
 
+    /**
+     * Whether this binder grants stats at all, mirroring
+     * {@link com.howlite.cobblemoncards.util.CardStatUtil#providesStats}. Derived from the tier rather
+     * than the stack so it stays correct on the client, where the menu may hold an empty stack.
+     */
+    public boolean providesStats() {
+        return tier != BinderTier.MASTER
+                || com.howlite.cobblemoncards.CobblemonCardsConfig.doesMasterBinderProvideStats;
+    }
+
     @Override
     public void removed(Player player) {
         super.removed(player);
