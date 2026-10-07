@@ -22,8 +22,14 @@ public class CobblemonCardsConfig extends MidnightConfig {
     @Entry(min = 0.0f, max = 100.0f)
     public static float spawnBoostStatMultiplier = 1.0f;
 
+    /**
+     * Hard ceiling on the spawn weight multiplier a binder can grant to an elemental type,
+     * applied in {@link com.howlite.cobblemoncards.event.BinderSpawnModifier}. This is the
+     * spawn-side counterpart of the per-stat caps below; 5.0 means a boosted type can be at
+     * most 5x more likely to spawn.
+     */
     @Entry(min = 0.0f, max = 10000.0f)
-    public static float maxSpawnBoostMultiplier = 100.0f;
+    public static float maxSpawnBoostMultiplier = 5.0f;
 
     @Entry(min = 1, max = 1200)
     public static int recyclerProcessTime = 40;
@@ -80,6 +86,14 @@ public class CobblemonCardsConfig extends MidnightConfig {
     @Entry(min = 1, max = 2000)
     public static int masterAlbumPages = 1000;
 
+    /**
+     * When false (default), Master Album tier binders grant no passive stats at all.
+     * A Master Album holds 1000 pages x 12 slots = 12,000 cards, so letting it contribute
+     * its full linear sum dwarfs every other binder tier. It stays a pure storage item.
+     */
+    @Entry
+    public static boolean doesMasterBinderProvideStats = false;
+
     // --- Per-stat multipliers for the vanilla-attribute / player stats ---
     // Each of these is applied on top of globalStatMultiplier * playerStatMultiplier.
 
@@ -116,6 +130,40 @@ public class CobblemonCardsConfig extends MidnightConfig {
     public static boolean allowFakemonCards = false;
 
 
+    // --- Stat caps ---
+    // Applied to the EFFECTIVE value (after every multiplier), in display units: a flat
+    // amount for FLAT stats (Max Health, Armor, Luck, Mining Speed) and a percentage for
+    // PERCENT stats. Without these, a high-capacity binder sums its cards linearly and
+    // without bound. Spawn stats are excluded: they are already bounded by
+    // maxSpawnBoostMultiplier in BinderSpawnModifier.
+
+    @Entry
+    public static boolean enableStatCaps = true;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float miningSpeedStatCap = 15.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float movementSpeedStatCap = 50.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float attackDamageStatCap = 50.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float attackSpeedStatCap = 50.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float luckStatCap = 10.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float armorStatCap = 10.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float maxHealthStatCap = 20.0f;
+
+    @Entry(min = 0.0f, max = 10000.0f)
+    public static float cardDropChanceStatCap = 50.0f;
+
     public static float getStatMultiplier(CardStat stat) {
         if (stat == null || !enableCardStats || (!enablePlayerStats && isPlayerStat(stat)) || (!enableSpawnBoostStats && isSpawnStat(stat))) {
             return 0.0f;
@@ -148,6 +196,31 @@ public class CobblemonCardsConfig extends MidnightConfig {
             case MAX_HEALTH -> maxHealthStatMultiplier;
             case CARD_DROP_CHANCE -> cardDropChanceStatMultiplier;
             default -> 1.0f;
+        };
+    }
+
+    /**
+     * Cap for a stat's effective value, in the same units as
+     * {@link com.howlite.cobblemoncards.util.CardStatUtil#getEffectiveValue}.
+     * <p>
+     * Returns {@link Float#MAX_VALUE} (i.e. no cap) when caps are disabled, for spawn stats
+     * (already bounded by {@link #maxSpawnBoostMultiplier}), and for any stat without a
+     * dedicated config entry.
+     */
+    public static float getStatCap(CardStat stat) {
+        if (stat == null || !enableStatCaps || isSpawnStat(stat)) {
+            return Float.MAX_VALUE;
+        }
+        return switch (stat) {
+            case MINING_SPEED -> miningSpeedStatCap;
+            case MOVEMENT_SPEED -> movementSpeedStatCap;
+            case ATTACK_DAMAGE -> attackDamageStatCap;
+            case ATTACK_SPEED -> attackSpeedStatCap;
+            case LUCK -> luckStatCap;
+            case ARMOR -> armorStatCap;
+            case MAX_HEALTH -> maxHealthStatCap;
+            case CARD_DROP_CHANCE -> cardDropChanceStatCap;
+            default -> Float.MAX_VALUE;
         };
     }
 

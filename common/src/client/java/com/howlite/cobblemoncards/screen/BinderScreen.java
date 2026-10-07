@@ -240,7 +240,9 @@ public class BinderScreen extends AbstractContainerScreen<BinderMenu> {
         int y = this.topPos;
         graphics.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight, 512, 512);
 
-        if (this.menu.getMaxPages() < 50) {
+        // Skip the panel for binders that grant nothing, otherwise it would advertise bonuses the
+        // player never receives (reachable when masterAlbumPages is configured below 50).
+        if (this.menu.providesStats() && this.menu.getMaxPages() < 50) {
             renderStatsPanel(graphics, x - 135, y);
         }
     }

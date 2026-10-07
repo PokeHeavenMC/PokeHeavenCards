@@ -69,7 +69,11 @@ Cobblemon Cards is fully configurable out of the box via **MidnightConfig**. You
 
 | Config Option | Default Value | Range / Type | Description |
 | :--- | :--- | :--- | :--- |
-| `globalStatMultiplier` | `10.0` | `0.1` - `100.0` | Multiplier applied to all passive RPG statistics bonuses granted by slotted cards. |
+| `globalStatMultiplier` | `10.0` | `0.0` - `100.0` | Multiplier applied to all passive RPG statistics bonuses granted by slotted cards. |
+| `enableStatCaps` | `true` | `Boolean` | Caps how high each player stat can be pushed by a binder. Without it, stats stack linearly with every card slotted. |
+| `armorStatCap` | `10.0` | `0.0` - `10000.0` | Maximum Armor bonus from a binder (flat). Companion options exist for every player stat: `miningSpeedStatCap` (`15.0`), `movementSpeedStatCap` (`50.0`), `attackDamageStatCap` (`50.0`), `attackSpeedStatCap` (`50.0`), `luckStatCap` (`10.0`), `maxHealthStatCap` (`20.0`), `cardDropChanceStatCap` (`50.0`). |
+| `doesMasterBinderProvideStats` | `false` | `Boolean` | Whether the Master Album grants passive stats. Off by default: it holds 12,000 cards, so its stat sum would dwarf every other binder tier. It remains fully usable as storage. |
+| `maxSpawnBoostMultiplier` | `5.0` | `0.0` - `10000.0` | Ceiling on the spawn weight multiplier a binder grants to an elemental type. `5.0` means a boosted type is at most 5x more likely to spawn. The spawn-side counterpart of the stat caps above. |
 | `recyclerProcessTime` | `40` | `1` - `1200` | Time (in ticks) it takes for a Card Recycler to process one card. |
 | `gradingStationProcessTime` | `100` | `1` - `12000` | Time (in ticks) it takes for a Grading Station to grade a card. |
 | `gradingStationDustCost` | `5` | `0` - `64` | Amount of Cobblecard Dust required to grade a card. |

@@ -4,6 +4,8 @@ import com.howlite.cobblemoncards.CobblemonCardsConfig;
 import com.howlite.cobblemoncards.component.CardData;
 import com.howlite.cobblemoncards.component.CardStat;
 import com.howlite.cobblemoncards.component.ModDataComponents;
+import com.howlite.cobblemoncards.item.custom.BinderItem;
+import com.howlite.cobblemoncards.item.custom.BinderTier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -59,8 +61,31 @@ public class CardStatUtil {
         return collectStats(binderStack, null);
     }
 
+    /**
+     * Whether a binder-like stack is allowed to grant stats at all.
+     * <p>
+     * A Master Album holds {@code masterAlbumPages * 12} slots (12,000 by default), so its linear
+     * stat sum dwarfs every other tier. {@link CobblemonCardsConfig#doesMasterBinderProvideStats}
+     * turns it into a pure storage item; this is the single gate honoured by attribute modifiers,
+     * tooltips, spawn boosts and the card drop bonus alike.
+     * <p>
+     * Note this only gates <em>stats</em>: {@link #getBinderContents(ItemStack)} keeps working so
+     * storing and retrieving cards is unaffected.
+     */
+    public static boolean providesStats(ItemStack binderStack) {
+        if (binderStack == null || binderStack.isEmpty()) {
+            return false;
+        }
+        return !(binderStack.getItem() instanceof BinderItem binder
+                && binder.getTier() == BinderTier.MASTER
+                && !CobblemonCardsConfig.doesMasterBinderProvideStats);
+    }
+
     /** Accumulating variant of {@link #collectStats(ItemStack, Predicate)}, for summing several binders. */
     public static void collectStats(ItemStack binderStack, Predicate<CardStat> filter, Map<CardStat, Float> out) {
+        if (!providesStats(binderStack)) {
+            return;
+        }
         for (ItemStack contentStack : getBinderContents(binderStack)) {
             CardData cardData = contentStack.get(ModDataComponents.CARD_DATA);
             if (cardData == null || cardData.stat() == null || CardUtil.isCosmeticCard(cardData.pokemonId())) {
@@ -116,6 +141,10 @@ public class CardStatUtil {
      * caller (tooltips, GUIs, attribute modifiers, spawn boosts) must go through this method and must
      * not multiply by the config multiplier or by 100 again.
      * <p>
+     * The result is then clamped to {@link CobblemonCardsConfig#getStatCap(CardStat)}. Because every
+     * caller funnels through here, the capped value is what gets displayed <em>and</em> what gets
+     * applied — the two can never drift apart.
+     * <p>
      * For {@link StatApplication#PERCENT} stats the result is expressed in percent (e.g. {@code 5.0f == +5%}).
      * For {@link StatApplication#FLAT} stats the result is the raw amount added to the attribute
      * (e.g. {@code 5.0f == +5 armor}).
@@ -126,7 +155,11 @@ public class CardStatUtil {
      */
     public static float getEffectiveValue(CardStat stat, float totalStatValue) {
         if (stat == null) return 0f;
-        return totalStatValue * CobblemonCardsConfig.getStatMultiplier(stat);
+        float value = totalStatValue * CobblemonCardsConfig.getStatMultiplier(stat);
+        // Capped so a high-capacity binder cannot stack its cards without bound. Negative
+        // values are left alone: no card produces one today, and clamping them would turn a
+        // malus into a bonus.
+        return value > 0f ? Math.min(value, CobblemonCardsConfig.getStatCap(stat)) : value;
     }
 
     /** Convenience overload for a single card. See {@link #getEffectiveValue(CardStat, float)}. */
