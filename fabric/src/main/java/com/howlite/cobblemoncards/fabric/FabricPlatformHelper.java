@@ -28,6 +28,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 public class FabricPlatformHelper implements PlatformHelper {
 
     @Override
+    public String getModVersion(String modId) {
+        return net.fabricmc.loader.api.FabricLoader.getInstance()
+                .getModContainer(modId)
+                .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                .orElse("absent");
+    }
+
+    @Override
     public MenuType<BinderMenu> createBinderMenuType() {
         return new net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType<>(
                 (containerId, playerInventory, locator) -> new BinderMenu(containerId, playerInventory, locator),

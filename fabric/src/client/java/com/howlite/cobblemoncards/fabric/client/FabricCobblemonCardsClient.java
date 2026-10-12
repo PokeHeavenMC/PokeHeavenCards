@@ -7,7 +7,10 @@ import com.howlite.cobblemoncards.component.ModDataComponents;
 import com.howlite.cobblemoncards.item.ModItems;
 import com.howlite.cobblemoncards.network.*;
 import com.howlite.cobblemoncards.render.CardItemRenderer;
+import com.howlite.cobblemoncards.render.CardTextureResolver;
 import com.howlite.cobblemoncards.render.ModShaders;
+import com.howlite.cobblemoncards.render.PokemonProfileTextures;
+import com.howlite.cobblemoncards.render.ProceduralTextureCache;
 import com.howlite.cobblemoncards.screen.BoosterPackScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -20,10 +23,14 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
 import org.lwjgl.glfw.GLFW;
 
 @SuppressWarnings("null")
@@ -70,6 +77,9 @@ public class FabricCobblemonCardsClient implements ClientModInitializer {
 
         // 5. Gestion du tick client pour les touches
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            // Cuisson des artworks manquants : au tick, donc hors de toute passe de dessin.
+            PokemonProfileTextures.processQueue();
+
             while (openBinderKey.consumeClick()) {
                 ClientPlayNetworking.send(new OpenBinderPayload());
             }
@@ -90,6 +100,24 @@ public class FabricCobblemonCardsClient implements ClientModInitializer {
                 }
             }
         });
+
+        // 5b. Invalidation des caches de textures au rechargement des ressources.
+        // Cet écouteur ne fait qu'invalider : il peut très bien tourner AVANT le rechargement du
+        // dépôt de modèles de Cobblemon, donc on ne cuit jamais ici.
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(
+                new SimpleSynchronousResourceReloadListener() {
+                    @Override
+                    public ResourceLocation getFabricId() {
+                        return ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "card_texture_cache");
+                    }
+
+                    @Override
+                    public void onResourceManagerReload(ResourceManager manager) {
+                        CardTextureResolver.clear();
+                        PokemonProfileTextures.clear();
+                        ProceduralTextureCache.clear();
+                    }
+                });
 
         // 6. Enregistrement du peintre de cartes
         BuiltinItemRendererRegistry.INSTANCE.register(ModItems.CARD, CardItemRenderer::render);

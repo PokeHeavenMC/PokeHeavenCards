@@ -140,7 +140,7 @@ public class CardRestorerBlockEntity extends BlockEntity implements ImplementedI
     public int calculateDustCost() {
         int currentGrade = getCurrentCardGrade();
         int target = targetGrade;
-        if (target <= currentGrade || target > 10 || currentGrade <= 0) return 0;
+        if (target <= currentGrade || target > CobblemonCardsConfig.restorerMaxGrade || currentGrade <= 0) return 0;
 
         int diff = target - currentGrade;
         int baseCost = target * CobblemonCardsConfig.restorerBaseCost;
@@ -186,7 +186,7 @@ public class CardRestorerBlockEntity extends BlockEntity implements ImplementedI
         if (currentGrade <= 0) return false;
 
         int target = targetGrade;
-        if (target <= currentGrade || target > 10) return false;
+        if (target <= currentGrade || target > CobblemonCardsConfig.restorerMaxGrade) return false;
 
         int dustCost = calculateDustCost();
         if (dustCost <= 0) return false;
@@ -270,7 +270,8 @@ public class CardRestorerBlockEntity extends BlockEntity implements ImplementedI
     }
 
     public void setTargetGrade(int grade) {
-        this.targetGrade = grade;
+        // Clamp côté serveur : on ne fait pas confiance au grade envoyé par le client
+        this.targetGrade = Math.max(0, Math.min(grade, CobblemonCardsConfig.restorerMaxGrade));
         setChanged();
         sync();
     }

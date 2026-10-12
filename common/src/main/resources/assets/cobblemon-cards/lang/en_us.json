@@ -326,6 +326,15 @@
   "category.cobblemon-cards": "Cobblemon Cards",
   "accessories.slot.binder": "Card Binder",
   "message.cobblemon-cards.binder_tier_disabled": "This binder tier has been disabled in the configuration.",
+  "message.cobblemon-cards.instant_dex.disabled": "The Insta-Dex has been disabled in the configuration.",
+  "cobblemon-cards.midnightconfig.allowFakemonCards": "Allow Fakemon Cards",
+  "cobblemon-cards.midnightconfig.allowFakemonCards.tooltip": "When off, species outside National Dex 1-1025 (Fakemon from addon mods) are excluded from card drops and booster packs.",
+  "cobblemon-cards.midnightconfig.enableFakemonCardArt": "Generate Missing Card Art",
+  "cobblemon-cards.midnightconfig.enableFakemonCardArt.tooltip": "When on, a species with no card sprite gets its artwork rendered from its Cobblemon model in the PC pose, instead of the substitute doll. Cached on disk. Client-side only.",
+  "cobblemon-cards.midnightconfig.fakemonCardArtCacheSize": "Generated Art Cache Size",
+  "cobblemon-cards.midnightconfig.fakemonCardArtCacheSize.tooltip": "How many generated artworks stay in video memory. Each costs about 100 KB.",
+  "cobblemon-cards.midnightconfig.enableInstantDex": "Enable Insta-Dex",
+  "cobblemon-cards.midnightconfig.enableInstantDex.tooltip": "When off, the Insta-Dex and the Card Structure Disk cannot be crafted, scanning does nothing, and the disk no longer absorbs Card Dust.",
   "cobblemon-cards.midnightconfig.enableLeatherBinder": "Enable Leather Binder",
   "cobblemon-cards.midnightconfig.enableIronBinder": "Enable Iron Binder",
   "cobblemon-cards.midnightconfig.enableGoldBinder": "Enable Gold Binder",
@@ -407,6 +416,9 @@
   "gui.cobblemon-cards.card_restorer.no_card": "No gradable card inserted",
   "gui.cobblemon-cards.card_restorer.no_target": "Select a target grade higher than current",
   "gui.cobblemon-cards.card_restorer.not_enough_dust": "Not enough Card Dust",
+  "gui.cobblemon-cards.card_restorer.max_grade": "Max restorable grade reached",
   "cobblemon-cards.midnightconfig.restorerBaseCost": "Restorer Base Cost",
-  "cobblemon-cards.midnightconfig.restorerBaseCost.tooltip": "Base cost multiplier for the Card Restorer. Final cost = (targetGrade × baseCost) × 2^(targetGrade - currentGrade - 1)."
+  "cobblemon-cards.midnightconfig.restorerBaseCost.tooltip": "Base cost multiplier for the Card Restorer. Final cost = (targetGrade × baseCost) × 2^(targetGrade - currentGrade - 1).",
+  "cobblemon-cards.midnightconfig.restorerMaxGrade": "Restorer Max Grade",
+  "cobblemon-cards.midnightconfig.restorerMaxGrade.tooltip": "Highest grade the Card Restorer can restore a card to. Grades above this can only be obtained by grading."
 }

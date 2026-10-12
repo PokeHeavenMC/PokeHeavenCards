@@ -2,6 +2,7 @@ package com.howlite.cobblemoncards.item.custom;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.howlite.cobblemoncards.CobblemonCardsConfig;
 import com.howlite.cobblemoncards.component.CardData;
 import com.howlite.cobblemoncards.component.CardStat;
 import com.howlite.cobblemoncards.component.DiskData;
@@ -38,6 +39,11 @@ public class InstantDexItem extends Item {
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity interactionTarget, InteractionHand usedHand) {
         if (player.level().isClientSide) {
             return InteractionResult.PASS;
+        }
+
+        if (!CobblemonCardsConfig.enableInstantDex) {
+            player.displayClientMessage(Component.translatable("message.cobblemon-cards.instant_dex.disabled").withStyle(ChatFormatting.RED), true);
+            return InteractionResult.FAIL;
         }
 
         if (interactionTarget instanceof PokemonEntity pokemonEntity) {
@@ -331,6 +337,11 @@ public class InstantDexItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        if (!CobblemonCardsConfig.enableInstantDex) {
+            tooltipComponents.add(Component.translatable("message.cobblemon-cards.instant_dex.disabled").withStyle(ChatFormatting.RED));
+            super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+            return;
+        }
         tooltipComponents.add(Component.translatable("tooltip.cobblemon-cards.instant_dex.tool").withStyle(ChatFormatting.GRAY));
         tooltipComponents.add(Component.translatable("tooltip.cobblemon-cards.instant_dex.requires_disk").withStyle(ChatFormatting.DARK_GRAY));
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);

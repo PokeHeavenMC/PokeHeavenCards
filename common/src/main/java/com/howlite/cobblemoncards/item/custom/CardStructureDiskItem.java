@@ -1,5 +1,6 @@
 package com.howlite.cobblemoncards.item.custom;
 
+import com.howlite.cobblemoncards.CobblemonCardsConfig;
 import com.howlite.cobblemoncards.component.DiskData;
 import com.howlite.cobblemoncards.component.ModDataComponents;
 import com.howlite.cobblemoncards.item.ModItems;
@@ -33,6 +34,11 @@ public class CardStructureDiskItem extends Item {
         DiskData data = heldStack.getOrDefault(ModDataComponents.DISK_DATA, DiskData.empty());
 
         if (!level.isClientSide) {
+            if (!CobblemonCardsConfig.enableInstantDex) {
+                player.displayClientMessage(Component.translatable("message.cobblemon-cards.instant_dex.disabled").withStyle(ChatFormatting.RED), true);
+                return InteractionResultHolder.fail(heldStack);
+            }
+
             if (data.dust() >= MAX_DUST) {
                 player.displayClientMessage(Component.translatable("message.cobblemon-cards.structure_disk.disk_full").withStyle(ChatFormatting.RED), true);
                 return InteractionResultHolder.fail(heldStack);
@@ -165,7 +171,13 @@ public class CardStructureDiskItem extends Item {
         DiskData data = stack.getOrDefault(ModDataComponents.DISK_DATA, DiskData.empty());
         
         int dust = data.dust();
-        
+
+        if (!CobblemonCardsConfig.enableInstantDex) {
+            tooltipComponents.add(Component.translatable("message.cobblemon-cards.instant_dex.disabled").withStyle(ChatFormatting.RED));
+            super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+            return;
+        }
+
         tooltipComponents.add(Component.translatable("tooltip.cobblemon-cards.structure_disk.charge_instruction").withStyle(ChatFormatting.YELLOW));
         tooltipComponents.add(Component.translatable("tooltip.cobblemon-cards.structure_disk.charge_all_instruction").withStyle(ChatFormatting.YELLOW));
         

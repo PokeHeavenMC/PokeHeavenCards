@@ -343,6 +343,15 @@
   "key.cobblemon-cards.open_binder": "Ouvrir le Classeur de Cartes",
   "category.cobblemon-cards": "Cartes Cobblemon",
   "message.cobblemon-cards.binder_tier_disabled": "Ce niveau de classeur a été désactivé dans la configuration.",
+  "message.cobblemon-cards.instant_dex.disabled": "L'Insta-Dex a été désactivé dans la configuration.",
+  "cobblemon-cards.midnightconfig.allowFakemonCards": "Autoriser les cartes Fakemon",
+  "cobblemon-cards.midnightconfig.allowFakemonCards.tooltip": "Désactivé, les espèces hors Pokédex National 1-1025 (Fakemon ajoutés par des addons) sont exclues des drops de cartes et des boosters.",
+  "cobblemon-cards.midnightconfig.enableFakemonCardArt": "Générer les artworks manquants",
+  "cobblemon-cards.midnightconfig.enableFakemonCardArt.tooltip": "Activé, une espèce sans sprite de carte voit son artwork rendu depuis son modèle Cobblemon en pose PC, au lieu de la poupée Substitut. Mis en cache sur disque. Côté client uniquement.",
+  "cobblemon-cards.midnightconfig.fakemonCardArtCacheSize": "Taille du cache d'artworks",
+  "cobblemon-cards.midnightconfig.fakemonCardArtCacheSize.tooltip": "Nombre d'artworks générés gardés en mémoire vidéo. Chacun coûte environ 100 Ko.",
+  "cobblemon-cards.midnightconfig.enableInstantDex": "Activer l'Insta-Dex",
+  "cobblemon-cards.midnightconfig.enableInstantDex.tooltip": "Désactivé, l'Insta-Dex et le Disque de Structure ne sont plus craftables, le scan ne fait rien et le disque n'absorbe plus de Poudre de Carte.",
   "cobblemon-cards.midnightconfig.enableLeatherBinder": "Activer Classeur Cuir",
   "cobblemon-cards.midnightconfig.enableIronBinder": "Activer Classeur Fer",
   "cobblemon-cards.midnightconfig.enableGoldBinder": "Activer Classeur Or",
@@ -424,6 +433,9 @@
   "gui.cobblemon-cards.card_restorer.no_card": "Aucune carte gradée insérée",
   "gui.cobblemon-cards.card_restorer.no_target": "Sélectionne un grade cible supérieur au grade actuel",
   "gui.cobblemon-cards.card_restorer.not_enough_dust": "Pas assez de Poudre de Cartes",
+  "gui.cobblemon-cards.card_restorer.max_grade": "Grade max restaurable atteint",
   "cobblemon-cards.midnightconfig.restorerBaseCost": "Coût de Base du Restaurateur",
-  "cobblemon-cards.midnightconfig.restorerBaseCost.tooltip": "Multiplicateur de coût de base pour le Restaurateur. Coût final = (gradesCible × coûtBase) × 2^(gradeCible - gradeActuel - 1)."
+  "cobblemon-cards.midnightconfig.restorerBaseCost.tooltip": "Multiplicateur de coût de base pour le Restaurateur. Coût final = (gradesCible × coûtBase) × 2^(gradeCible - gradeActuel - 1).",
+  "cobblemon-cards.midnightconfig.restorerMaxGrade": "Grade Max du Restaurateur",
+  "cobblemon-cards.midnightconfig.restorerMaxGrade.tooltip": "Grade maximum que le Restaurateur peut atteindre. Les grades supérieurs ne s'obtiennent que par le grading."
 }

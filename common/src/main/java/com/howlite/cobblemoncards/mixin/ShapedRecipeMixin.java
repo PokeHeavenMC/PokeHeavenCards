@@ -2,6 +2,7 @@ package com.howlite.cobblemoncards.mixin;
 
 import com.howlite.cobblemoncards.item.custom.BinderItem;
 import com.howlite.cobblemoncards.block.ModBlocks;
+import com.howlite.cobblemoncards.item.ModItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +25,12 @@ public class ShapedRecipeMixin {
                 cir.setReturnValue(ItemStack.EMPTY);
                 return;
             }
+        }
+
+        if (!com.howlite.cobblemoncards.CobblemonCardsConfig.enableInstantDex
+                && (result.is(ModItems.INSTANT_DEX) || result.is(ModItems.CARD_STRUCTURE_DISK))) {
+            cir.setReturnValue(ItemStack.EMPTY);
+            return;
         }
 
         boolean isTarget = result.getItem() instanceof BinderItem || result.is(ModBlocks.CARD_CABINET.asItem());

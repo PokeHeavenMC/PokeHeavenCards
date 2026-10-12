@@ -1,5 +1,6 @@
 package com.howlite.cobblemoncards.screen;
 
+import com.howlite.cobblemoncards.CobblemonCardsConfig;
 import com.howlite.cobblemoncards.menu.CardRestorerMenu;
 import com.howlite.cobblemoncards.network.ChangeRestorerTargetGradePayload;
 import com.howlite.cobblemoncards.network.PerformRestorerPayload;
@@ -319,6 +320,9 @@ public class CardRestorerScreen extends AbstractContainerScreen<CardRestorerMenu
                         spriteU, UV_GRADE_BLUE_V,
                         segW, GRADE_BAR_H,
                         TEX_SIZE, TEX_SIZE);
+            } else if (i > CobblemonCardsConfig.restorerMaxGrade) {
+                // Hors de portée du Restorer (uniquement obtenable par grading)
+                graphics.fill(cellX, cellY, cellX + segW, cellY + GRADE_BAR_H, 0xFF1E1E1E);
             } else {
                 graphics.fill(cellX, cellY, cellX + segW, cellY + GRADE_BAR_H, 0xFF3A3A3A);
             }
@@ -358,6 +362,7 @@ public class CardRestorerScreen extends AbstractContainerScreen<CardRestorerMenu
         int dustCost     = menu.getDustCost();
         int currentGrade = menu.getCurrentCardGrade();
         int targetGrade  = menu.getTargetGrade();
+        int maxGrade     = CobblemonCardsConfig.restorerMaxGrade;
 
         // Zone de texte : abaissée à Y=36 au-dessus de la flèche
         int textX = x + 12;
@@ -365,7 +370,10 @@ public class CardRestorerScreen extends AbstractContainerScreen<CardRestorerMenu
 
         if (currentGrade <= 0) {
             graphics.drawString(font, "Insert Card",  textX, textY,      0xAAAAAA, false);
-            graphics.drawString(font, "Grade 1-10",   textX, textY + 11, 0x777777, false);
+            graphics.drawString(font, "Grade 1-" + maxGrade, textX, textY + 11, 0x777777, false);
+        } else if (currentGrade >= maxGrade) {
+            graphics.drawString(font, "Grade " + currentGrade, textX, textY,      0x55FF55, false);
+            graphics.drawString(font, "Max reached",           textX, textY + 11, 0xFF5555, false);
         } else if (targetGrade <= currentGrade) {
             graphics.drawString(font, "Grade " + currentGrade, textX, textY,      0x55FF55, false);
             graphics.drawString(font, "Use + button",          textX, textY + 11, 0xAAAAAA, false);
@@ -398,11 +406,15 @@ public class CardRestorerScreen extends AbstractContainerScreen<CardRestorerMenu
         if (isInBounds(mouseX, mouseY, x + BTN_PLUS_X, y + BTN_PLUS_Y, 10, 10)) {
             int currentGrade = menu.getCurrentCardGrade();
             int targetGrade = menu.getTargetGrade();
+            int maxGrade = CobblemonCardsConfig.restorerMaxGrade;
+            if (currentGrade >= maxGrade) {
+                return true;
+            }
             int newTarget;
             if (targetGrade <= currentGrade) {
-                newTarget = Math.min(10, currentGrade + 1);
+                newTarget = Math.min(maxGrade, currentGrade + 1);
             } else {
-                newTarget = Math.min(10, targetGrade + 1);
+                newTarget = Math.min(maxGrade, targetGrade + 1);
             }
             PlatformHelper.INSTANCE.sendToServer(new ChangeRestorerTargetGradePayload(newTarget));
             return true;
@@ -459,6 +471,8 @@ public class CardRestorerScreen extends AbstractContainerScreen<CardRestorerMenu
             if (this.restoreTimerTicks > 0) {
                 float secondsLeft = restoreTimerTicks / 20.0f;
                 graphics.renderTooltip(font, Component.literal("Restoring... " + String.format("%.1fs", secondsLeft)), mouseX, mouseY);
+            } else if (menu.getCurrentCardGrade() >= CobblemonCardsConfig.restorerMaxGrade) {
+                graphics.renderTooltip(font, Component.translatable("gui.cobblemon-cards.card_restorer.max_grade"), mouseX, mouseY);
             } else if (menu.canRestore()) {
                 graphics.renderTooltip(font, Component.translatable("gui.cobblemon-cards.card_restorer.restore"), mouseX, mouseY);
             } else if (menu.getCurrentCardGrade() > 0 && menu.getTargetGrade() > menu.getCurrentCardGrade()) {

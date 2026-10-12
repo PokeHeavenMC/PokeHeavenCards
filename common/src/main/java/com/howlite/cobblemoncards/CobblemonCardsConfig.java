@@ -49,6 +49,13 @@ public class CobblemonCardsConfig extends MidnightConfig {
     @Entry(min = 1, max = 1000)
     public static int restorerBaseCost = 5;
 
+    /**
+     * Highest grade the Card Restorer can bring a card to. Grades above this can only be
+     * obtained through grading; cards already at or above it cannot be restored further.
+     */
+    @Entry(min = 1, max = 10)
+    public static int restorerMaxGrade = 8;
+
     @Entry
     public static boolean enableBoosterChestSpawn = true;
 
@@ -57,6 +64,15 @@ public class CobblemonCardsConfig extends MidnightConfig {
 
     @Entry
     public static boolean displayPercentStatOnCards = true;
+
+    /**
+     * When false, the Insta-Dex scanning flow is turned off entirely: the item and the
+     * Card Structure Disk cannot be crafted, scanning a Pokémon or a player does nothing,
+     * and the disk refuses to absorb Card Dust so no dust is wasted on a dead-end item.
+     * Existing items stay in inventories but become inert.
+     */
+    @Entry
+    public static boolean enableInstantDex = true;
 
     // --- Binder Config Options ---
 
@@ -128,6 +144,22 @@ public class CobblemonCardsConfig extends MidnightConfig {
      */
     @Entry
     public static boolean allowFakemonCards = false;
+
+    /**
+     * When true, a species with no bundled or resource-pack card sprite gets its artwork rendered
+     * on the fly from its Cobblemon model, in the PC/storage profile pose, instead of showing the
+     * substitute doll. Baked images are cached under &lt;gameDir&gt;/cobblemon-cards/profile-cache
+     * and reused across sessions. Client-side only; a hand-drawn sprite always wins over a bake.
+     */
+    @Entry
+    public static boolean enableFakemonCardArt = true;
+
+    /**
+     * How many generated artworks stay in video memory at once. Each costs roughly 100 KB of VRAM
+     * plus as much heap; the least recently drawn are released past this.
+     */
+    @Entry(min = 16, max = 2048)
+    public static int fakemonCardArtCacheSize = 256;
 
 
     // --- Stat caps ---

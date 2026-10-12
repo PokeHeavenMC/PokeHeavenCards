@@ -27,6 +27,14 @@ import com.howlite.cobblemoncards.menu.BinderMenu;
 public class NeoForgePlatformHelper implements PlatformHelper {
 
     @Override
+    public String getModVersion(String modId) {
+        return net.neoforged.fml.ModList.get()
+                .getModContainerById(modId)
+                .map(container -> container.getModInfo().getVersion().toString())
+                .orElse("absent");
+    }
+
+    @Override
     public MenuType<BinderMenu> createBinderMenuType() {
         return net.neoforged.neoforge.common.extensions.IMenuTypeExtension.create(
                 (containerId, playerInventory, buf) -> new BinderMenu(containerId, playerInventory, BinderLocator.read(buf))

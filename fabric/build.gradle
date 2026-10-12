@@ -11,6 +11,12 @@ repositories {
 version = project.mod_version
 group = project.maven_group
 
+// Sans ca, Gradle nomme le jar d'apres le nom du sous-projet : `fabric-<version>.jar`.
+// build-deploy.js deploie le jar sous son nom de fichier, tel quel.
+base {
+    archivesName = 'cobblemon-cards-fabric'
+}
+
 evaluationDependsOn(':common')
 
 loom {

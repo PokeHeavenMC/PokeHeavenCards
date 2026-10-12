@@ -1,5 +1,6 @@
 package com.howlite.cobblemoncards.menu;
 
+import com.howlite.cobblemoncards.CobblemonCardsConfig;
 import com.howlite.cobblemoncards.block.entity.CardRestorerBlockEntity;
 import com.howlite.cobblemoncards.block.ModBlocks;
 import com.howlite.cobblemoncards.component.ModDataComponents;
@@ -129,7 +130,7 @@ public class CardRestorerMenu extends AbstractContainerMenu {
             else if (stack.is(ModBlocks.CARD_DUST_SACK.asItem())) available += stack.getCount() * 576;
         }
 
-        return currentGrade > 0 && target > currentGrade && target <= 10
+        return currentGrade > 0 && target > currentGrade && target <= CobblemonCardsConfig.restorerMaxGrade
                 && cost > 0 && available >= cost;
     }
 

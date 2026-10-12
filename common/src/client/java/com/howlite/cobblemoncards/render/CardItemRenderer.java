@@ -15,7 +15,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
-import com.cobblemon.mod.common.pokemon.Species;
 import com.mojang.authlib.GameProfile;
 
 public class CardItemRenderer {
@@ -92,151 +91,23 @@ public class CardItemRenderer {
         boolean isSilhouette = data.pokemonId().startsWith("silhouette_");
         String resolvedPokemonId = isSilhouette ? data.pokemonId().substring("silhouette_".length()) : data.pokemonId();
         
-        if (isPlayer) {
-            // Player skin textures are resolved dynamically
-        } else if (resolvedPokemonId.equalsIgnoreCase("missingno")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/missingno.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("you_and_mew")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/you_and_mew.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("ghost")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/ghost.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("god_bidoof")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/god_bidoof.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("crystal_onix")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/crystal_onix.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("shadow_lugia")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/shadow_lugia.png");
-        } else if (resolvedPokemonId.equalsIgnoreCase("pride_sylveon")) {
-            pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/easter_egg/pride_sylveon.png");
-        } else {
-            String folder = data.isShiny() ? "shiny" : "regular";
-            String sanitizedName = sanitizeStandardPath(resolvedPokemonId);
-            ResourceLocation primaryTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/" + folder + "/" + sanitizedName + ".png");
-            
-            // Si manquant, essayer en remplaçant les tirets bas par des tirets (Mega/Régionaux en dossier regular/shiny)
-            if (!Minecraft.getInstance().getResourceManager().getResource(primaryTex).isPresent()) {
-                String dashed = sanitizedName.replace("_", "-");
-                ResourceLocation dashedTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/" + folder + "/" + dashed + ".png");
-                if (Minecraft.getInstance().getResourceManager().getResource(dashedTex).isPresent()) {
-                    pokemonTex = dashedTex;
-                } else {
-                    pokemonTex = primaryTex;
-                }
-            } else {
-                pokemonTex = primaryTex;
+        if (!isPlayer) {
+            // Toute la chaîne de résolution (easter eggs, resource packs, entity_icon) est
+            // mémorisée par CardTextureResolver : elle sondait le ResourceManager jusqu'à 40 fois
+            // par carte et par frame.
+            pokemonTex = CardTextureResolver.resolve(resolvedPokemonId, data.isShiny());
+
+            if (pokemonTex == null) {
+                // Aucun sprite 2D pour cette espèce (typiquement un Fakemon d'addon) : on tente
+                // l'artwork cuit depuis son modèle 3D Cobblemon, sinon la poupée Substitut.
+                pokemonTex = PokemonProfileTextures.get(resolvedPokemonId, data.isShiny());
+            }
+            if (pokemonTex == null) {
+                String fallbackName = data.isShiny() ? "substitute_shiny.png" : "substitute.png";
+                pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/entity_icon/" + fallbackName);
             }
         }
 
-        if (!isPlayer && Minecraft.getInstance().getResourceManager() != null) {
-            // Si le sprite 40x30 par défaut est manquant, on cherche dans le dossier entity_icon (Gen 1-9, format 68x56)
-            if (!Minecraft.getInstance().getResourceManager().getResource(pokemonTex).isPresent()) {
-                String baseSpecies = getBaseSpeciesName(resolvedPokemonId);
-                Species species = com.howlite.cobblemoncards.util.CardUtil.getSpecies(baseSpecies);
-                if (species != null) {
-                    String cleanName = sanitizeEntityIconPath(species.getName());
-                    String dexString = String.format("%04d", species.getNationalPokedexNumber());
-                    String entityFolderName = dexString + "_" + cleanName;
-                    
-                    ResourceLocation resolvedTex = null;
-                    
-                    // A. Essayer d'abord la texture exacte de la variante (ex: vulpix_alolan.png)
-                    String vName = resolvedPokemonId.toLowerCase();
-                    String[] variantFiles = {
-                        vName + (data.isShiny() ? "_shiny" : ""),
-                        vName.replace("-", "_") + (data.isShiny() ? "_shiny" : ""),
-                        vName.replace("_", "-") + (data.isShiny() ? "_shiny" : "")
-                    };
-                    
-                    for (String vf : variantFiles) {
-                        String cleanVf = sanitizeStandardPath(vf) + ".png";
-                        ResourceLocation vTex = ResourceLocation.fromNamespaceAndPath(
-                            "cobblemon-cards",
-                            "textures/item/cards/pokemon/entity_icon/" + entityFolderName + "/" + cleanVf
-                        );
-                        if (Minecraft.getInstance().getResourceManager().getResource(vTex).isPresent()) {
-                            resolvedTex = vTex;
-                            break;
-                        }
-                    }
-                    
-                    if (resolvedTex == null) {
-                        // B. Essayer le fichier standard avec le nom remappé
-                        String remappedName = getRemappedEntityName(cleanName);
-                        String standardFileName = remappedName + (data.isShiny() ? "_shiny.png" : ".png");
-                        ResourceLocation standardTex = ResourceLocation.fromNamespaceAndPath(
-                            "cobblemon-cards", 
-                            "textures/item/cards/pokemon/entity_icon/" + entityFolderName + "/" + standardFileName
-                        );
-                        
-                        if (Minecraft.getInstance().getResourceManager().getResource(standardTex).isPresent()) {
-                            resolvedTex = standardTex;
-                        } else {
-                        // 2. Essayer avec les suffixes courants (genders, formes, segments, ou numéros de sprite)
-                        String[] suffixes = {
-                            "_1", "_male", "_m", "_female", "_f", "_chest", "_roaming", "_zero", "_hero", 
-                            "_solo", "_school", "_amped", "_lowkey", "_curly", "_droopy", "_stretchy", 
-                            "_two_segment", "_three_segment", "_green", "_blue", "_yellow", "_gray", 
-                            "_spring", "_summer", "_autumn", "_winter", "_west", "_east", 
-                            "_redstripe", "_bluestripe", "_whitestripe", "_a", "_shadow", 
-                            "_incarnate", "_therian", "_vanilla"
-                        };
-                        
-                        for (String suffix : suffixes) {
-                            if (data.isShiny()) {
-                                // Essayer premier placement : remappedName + suffix + "_shiny.png" (ex: gimmighoul_chest_shiny.png)
-                                String f1 = remappedName + suffix + "_shiny.png";
-                                ResourceLocation t1 = ResourceLocation.fromNamespaceAndPath(
-                                    "cobblemon-cards", 
-                                    "textures/item/cards/pokemon/entity_icon/" + entityFolderName + "/" + f1
-                                );
-                                if (Minecraft.getInstance().getResourceManager().getResource(t1).isPresent()) {
-                                    resolvedTex = t1;
-                                    break;
-                                }
-                                
-                                // Essayer second placement : remappedName + "_shiny" + suffix + ".png" (ex: ceruledge_shiny_1.png)
-                                String f2 = remappedName + "_shiny" + suffix + ".png";
-                                ResourceLocation t2 = ResourceLocation.fromNamespaceAndPath(
-                                    "cobblemon-cards", 
-                                    "textures/item/cards/pokemon/entity_icon/" + entityFolderName + "/" + f2
-                                );
-                                if (Minecraft.getInstance().getResourceManager().getResource(t2).isPresent()) {
-                                    resolvedTex = t2;
-                                    break;
-                                }
-                            } else {
-                                String f = remappedName + suffix + ".png";
-                                ResourceLocation t = ResourceLocation.fromNamespaceAndPath(
-                                    "cobblemon-cards", 
-                                    "textures/item/cards/pokemon/entity_icon/" + entityFolderName + "/" + f
-                                );
-                                if (Minecraft.getInstance().getResourceManager().getResource(t).isPresent()) {
-                                    resolvedTex = t;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    }
-                    
-                    if (resolvedTex != null) {
-                        pokemonTex = resolvedTex;
-                        // entity_icon textures are 40x30 (padded to 48x32 for mipmap).
-                        // Use 40x30 ratio so the quad matches the content ratio exactly (no horizontal squish).
-                        imageWidth = 40.0f;
-                        imageHeight = 30.0f;
-                    }
-                }
-            }
-            
-            // Si toujours manquant après recherche, fallback sur substitute.png ou substitute_shiny.png (40x30)
-            if (!Minecraft.getInstance().getResourceManager().getResource(pokemonTex).isPresent()) {
-                String fallbackName = data.isShiny() ? "substitute_shiny.png" : "substitute.png";
-                pokemonTex = ResourceLocation.fromNamespaceAndPath("cobblemon-cards", "textures/item/cards/pokemon/entity_icon/" + fallbackName);
-                imageWidth = 40.0f;
-                imageHeight = 30.0f;
-            }
-        }
 
         float pokeHeight = 6.0f / 16.0f;
         float pokeWidth = pokeHeight * (imageWidth / imageHeight);
@@ -2933,69 +2804,6 @@ public class CardItemRenderer {
         consumer.addVertex(matrix,  hw, -hh, 0).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
         consumer.addVertex(matrix,  hw,  hh, 0).setColor(r, g, b, a).setUv(u1, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
         consumer.addVertex(matrix, -hw,  hh, 0).setColor(r, g, b, a).setUv(u0, v0).setOverlay(overlay).setLight(light).setNormal(0, 0, 1);
-    }
-
-    private static String getBaseSpeciesName(String name) {
-        String lower = name.toLowerCase();
-        if (lower.startsWith("eternamax_")) return "eternatus";
-        if (lower.endsWith("_rapidstrike_gmax")) return "urshifu";
-        if (lower.endsWith("_alolan")) return lower.substring(0, lower.length() - "_alolan".length());
-        if (lower.endsWith("_galarian")) return lower.substring(0, lower.length() - "_galarian".length());
-        if (lower.endsWith("_hisuian")) return lower.substring(0, lower.length() - "_hisuian".length());
-        if (lower.endsWith("_paldean_combat")) return "tauros";
-        if (lower.endsWith("_paldean_blaze")) return "tauros";
-        if (lower.endsWith("_paldean_aqua")) return "tauros";
-        if (lower.endsWith("_paldean")) return lower.substring(0, lower.length() - "_paldean".length());
-        if (lower.endsWith("_mega_x")) return lower.substring(0, lower.length() - "_mega_x".length());
-        if (lower.endsWith("_mega_y")) return lower.substring(0, lower.length() - "_mega_y".length());
-        if (lower.endsWith("_mega")) return lower.substring(0, lower.length() - "_mega".length());
-        if (lower.endsWith("_gmax")) return lower.substring(0, lower.length() - "_gmax".length());
-        if (lower.endsWith("_gigantamax")) return lower.substring(0, lower.length() - "_gigantamax".length());
-        
-        if (lower.endsWith("-alolan")) return lower.substring(0, lower.length() - "-alolan".length());
-        if (lower.endsWith("-galarian")) return lower.substring(0, lower.length() - "-galarian".length());
-        if (lower.endsWith("-hisuian")) return lower.substring(0, lower.length() - "-hisuian".length());
-        if (lower.endsWith("-paldean-combat")) return "tauros";
-        if (lower.endsWith("-paldean-blaze")) return "tauros";
-        if (lower.endsWith("-paldean-aqua")) return "tauros";
-        if (lower.endsWith("-paldean")) return lower.substring(0, lower.length() - "-paldean".length());
-        if (lower.endsWith("-mega-x")) return lower.substring(0, lower.length() - "-mega-x".length());
-        if (lower.endsWith("-mega-y")) return lower.substring(0, lower.length() - "-mega-y".length());
-        if (lower.endsWith("-mega")) return lower.substring(0, lower.length() - "-mega".length());
-        if (lower.endsWith("-gmax")) return lower.substring(0, lower.length() - "-gmax".length());
-        if (lower.endsWith("-gigantamax")) return lower.substring(0, lower.length() - "-gigantamax".length());
-        return lower;
-    }
-
-    private static String sanitizeStandardPath(String id) {
-        if (id == null) return "missing";
-        return id.toLowerCase()
-                 .replace(".", "")
-                 .replace(" ", "-")
-                 .replaceAll("[^a-z0-9/._-]", "");
-    }
-
-    private static String sanitizeEntityIconPath(String id) {
-        if (id == null) return "missing";
-        return id.toLowerCase()
-                 .replace(".", "")
-                 .replace(" ", "")
-                 .replace("-", "")
-                 .replaceAll("[^a-z0-9/._-]", "");
-    }
-
-    private static String getRemappedEntityName(String cleanName) {
-        return switch (cleanName) {
-            case "mrmime" -> "mr_mime";
-            case "mimejr" -> "mime_jr";
-            case "mrrime" -> "mr_rime";
-            case "hooh" -> "ho_oh";
-            case "porygonz" -> "porygon-z";
-            case "jangmoo" -> "jangmo-o";
-            case "hakamoo" -> "hakamo-o";
-            case "kommoo" -> "kommo-o";
-            default -> cleanName;
-        };
     }
 
     private static void renderProceduralBackgroundShader(PoseStack matrices, MultiBufferSource vertexConsumers, String bgType, int light, int overlay, float w, float h) {

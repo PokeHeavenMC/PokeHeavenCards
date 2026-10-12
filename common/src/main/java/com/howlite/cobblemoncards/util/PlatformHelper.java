@@ -40,6 +40,15 @@ public interface PlatformHelper {
         }
     }
 
+    /**
+     * Version du mod chargé sous cet identifiant, ou {@code "absent"} s'il n'est pas présent.
+     * Sert d'empreinte au cache disque des artworks générés : quand un addon d'espèces change de
+     * version, ses vignettes doivent être recuites.
+     */
+    default String getModVersion(String modId) {
+        return "absent";
+    }
+
     List<EquippedAccessory> getEquippedAccessories(LivingEntity entity);
     boolean equipItem(Player player, ItemStack stack);
     void refreshEquippedModifiers(LivingEntity entity);

@@ -3,7 +3,10 @@ package com.howlite.cobblemoncards.neoforge.client;
 import com.howlite.cobblemoncards.client.CobblemonCardsClient;
 import com.howlite.cobblemoncards.component.ModDataComponents;
 import com.howlite.cobblemoncards.network.OpenBinderPayload;
+import com.howlite.cobblemoncards.render.CardTextureResolver;
 import com.howlite.cobblemoncards.render.ModShaders;
+import com.howlite.cobblemoncards.render.PokemonProfileTextures;
+import com.howlite.cobblemoncards.render.ProceduralTextureCache;
 import com.howlite.cobblemoncards.screen.AdvancedHoloProjectorScreen;
 import com.howlite.cobblemoncards.screen.BinderScreen;
 import com.howlite.cobblemoncards.screen.CardCabinetScreen;
@@ -15,9 +18,11 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -41,9 +46,23 @@ public class NeoForgeCobblemonCardsClient {
         modEventBus.addListener(NeoForgeCobblemonCardsClient::registerScreens);
         modEventBus.addListener(NeoForgeCobblemonCardsClient::registerShaders);
         modEventBus.addListener(NeoForgeCobblemonCardsClient::registerKeyMappings);
+        modEventBus.addListener(NeoForgeCobblemonCardsClient::registerReloadListeners);
 
         // World render hook: draw shown cards in the world after entities are rendered
         NeoForge.EVENT_BUS.addListener(NeoForgeCobblemonCardsClient::onRenderLevelStage);
+    }
+
+    /**
+     * Invalidation des caches de textures au rechargement des ressources. Cet écouteur ne fait
+     * qu'invalider : il peut tourner AVANT le rechargement du dépôt de modèles de Cobblemon, donc
+     * on ne cuit jamais ici.
+     */
+    public static void registerReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener((ResourceManagerReloadListener) manager -> {
+            CardTextureResolver.clear();
+            PokemonProfileTextures.clear();
+            ProceduralTextureCache.clear();
+        });
     }
 
     public static void clientSetup(FMLClientSetupEvent event) {
@@ -101,6 +120,10 @@ public class NeoForgeCobblemonCardsClient {
     }
 
     public static void onClientTick(ClientTickEvent.Post event) {
+        // Cuisson des artworks manquants : au tick, donc hors de toute passe de dessin.
+        // Placé avant la garde sur les touches, qui n'a rien à voir.
+        PokemonProfileTextures.processQueue();
+
         if (openBinderKey == null || openShowcaseKey == null) return;
         
         while (openBinderKey.consumeClick()) {
